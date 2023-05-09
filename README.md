@@ -1,0 +1,1 @@
+# dirty-solidity-flattener
