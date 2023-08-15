@@ -14,7 +14,7 @@ import (
 var processed map[string]bool = make(map[string]bool)
 var spdx_inserted bool = false
 
-func processFile(file_name string, out *bufio.Writer) {
+func processFile(base_dir string, file_name string, out *bufio.Writer) {
 
 	file_name = filepath.Clean(file_name)
 
@@ -61,13 +61,21 @@ func processFile(file_name string, out *bufio.Writer) {
 						name_to_use = dir + "/node_modules/" + importedFileName
 						_, err := os.Stat(name_to_use)
 						if err != nil {
-							panic("Could not find file: " + importedFileName)
+							name_to_use = base_dir + "/node_modules/" + importedFileName
+							_, err := os.Stat(name_to_use)
+							if err != nil {
+								panic("Could not find file: " + importedFileName)
+							}
 						}
 					}
 
 				}
 
-				processFile(name_to_use, out)
+				if base_dir == "" {
+					base_dir = dir
+				}
+
+				processFile(base_dir, name_to_use, out)
 			} else {
 				panic("Invalid import statement: " + line)
 			}
@@ -118,7 +126,7 @@ func main() {
 	defer f_out.Close()
 
 	writer := bufio.NewWriter(f_out)
-	processFile(i, writer)
+	processFile("", i, writer)
 
 	writer.WriteString("// Processed by Dirty Solidity Flattener by @AlexNa \n")
 	writer.WriteString("// https://github.com/lexansoft/dirty-solidity-flattener \n")
