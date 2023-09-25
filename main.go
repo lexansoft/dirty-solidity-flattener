@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -16,6 +17,7 @@ var spdx_inserted bool = false
 
 func processFile(base_dir string, file_name string, out *bufio.Writer) {
 
+	once := false
 	file_name = filepath.Clean(file_name)
 
 	if processed[file_name] {
@@ -24,7 +26,6 @@ func processFile(base_dir string, file_name string, out *bufio.Writer) {
 	processed[file_name] = true
 
 	fmt.Printf("Processing file: %s\n", file_name)
-	out.WriteString("// File: " + file_name + "\n")
 
 	file, err := os.Open(file_name)
 	if err != nil {
@@ -82,10 +83,20 @@ func processFile(base_dir string, file_name string, out *bufio.Writer) {
 			}
 		} else if spdxPattern.MatchString(line) {
 			if !spdx_inserted {
+				if !once {
+					al_writer.WriteString("// File: " + path.Base(file_name) + "\n")
+					once = true
+				}
 				spdx_inserted = true
 				al_writer.WriteString(line + "\n")
 			}
 		} else {
+
+			if !once {
+				al_writer.WriteString("// File: " + path.Base(file_name) + "\n")
+				once = true
+			}
+
 			al_writer.WriteString(line + "\n")
 		}
 	}
