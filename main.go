@@ -24,6 +24,7 @@ func processFile(base_dir string, file_name string, out *bufio.Writer) {
 	processed[file_name] = true
 
 	fmt.Printf("Processing file: %s\n", file_name)
+	out.WriteString("// File: " + file_name + "\n")
 
 	file, err := os.Open(file_name)
 	if err != nil {
